@@ -1,6 +1,6 @@
 {
 	"name": "@mmstudio/an000029",
-	"version": "1.0.202003171711",
+	"version": "1.0.202004170819",
 	"description": "用户名密码登录",
 	"scripts": {
 		"test": "tsc && ava ./tests/*.js",
