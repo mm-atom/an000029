@@ -45,7 +45,7 @@
 	},
 	"peerDependencies": {
 		"@mmstudio/an000014": "*",
-		"@mmstudio/an000016": "latest"
+		"@mmstudio/an000016": "*"
 	},
 	"devDependencies": {
 		"@mmstudio/an000014": "latest",
