@@ -4,7 +4,7 @@
 	"description": "用户名密码登录",
 	"scripts": {
 		"test": "tsc && ava ./tests/*.js",
-		"watch": "tsc -w & ava --watch ./tests/*.js",
+		"dev": "tsc -w & ava --watch ./tests/*.js",
 		"clean": "del-cli ./dist/",
 		"lint": "eslint ./src/**/*.ts",
 		"compile": "tsc",
@@ -41,20 +41,23 @@
 	],
 	"license": "MIT",
 	"dependencies": {
-		"uuid": "7.0.3"
+		"jsonwebtoken": "^8.5.1"
 	},
 	"peerDependencies": {
-		"@mmstudio/an000014": "*",
-		"@mmstudio/an000016": "*"
+		"@mmstudio/an000036": "*",
+		"@mmstudio/config": "*",
+		"@mmstudio/global": "*",
+		"anylogger": "*"
 	},
 	"devDependencies": {
-		"@mmstudio/an000014": "latest",
-		"@mmstudio/an000016": "latest",
+		"@mmstudio/an000036": "^1.0.1",
 		"@mmstudio/config": "latest",
 		"@mmstudio/global": "latest",
-		"@types/uuid": "latest",
+		"@types/jsonwebtoken": "^8.5.0",
+		"@types/minio": "^7.0.6",
 		"@typescript-eslint/eslint-plugin": "latest",
 		"@typescript-eslint/parser": "latest",
+		"anylogger": "^1.0.9",
 		"ava": "latest",
 		"del-cli": "latest",
 		"eslint": "latest",

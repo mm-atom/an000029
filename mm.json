@@ -1,12 +1,10 @@
 {
-	"redis": {
-		"url": "redis://127.0.0.1:6379",
-		"expiration": 20000
+	"session": {
+		"secret": "Mmstudio123",
+		"expiresIn": "30d"
 	},
-	"dbs": {
-		"sys": {
-			"type": "postgres",
-			"source": "postgres://mmstudio:Mmstudio123@127.0.0.1:5432/mmstudio"
-		}
+	"db": {
+		"type": "postgres",
+		"source": "postgres://mmstudio:Mmstudio123@127.0.0.1:5432/mmstudio"
 	}
 }

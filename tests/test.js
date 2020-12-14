@@ -10,6 +10,11 @@ INSERT INTO "users" ("id", "info") VALUES
 ('da6e8226-2356-4b61-ae8c-0455430def0b',	'{"nickname":"taoqf","email":"taoqiufeng@ifeidao.com","phone":"18937139411"}');
  */
 test('用户登陆', async (t) => {
-	const r = await a('taoqiufeng', 'taoqf001', '127.0.0.1');
-	t.is(r.userid, 'taoqiufeng');
+	const r = await a('user', 'taoqiufeng', 'taoqf001', '127.0.0.1');
+	t.is(r.userinfo.userid, 'taoqiufeng');
+});
+
+test('手机登陆', async (t) => {
+	const r = await a('phone', '18937139411', 'taoqf001', '127.0.0.1');
+	t.is(r.userinfo.userid, '18937139411');
 });

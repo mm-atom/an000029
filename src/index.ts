@@ -1,34 +1,37 @@
 import { createHash } from 'crypto';
-import an14 from '@mmstudio/an000014';
-import an16 from '@mmstudio/an000016';
-import { v4 } from 'uuid';
+import an36 from '@mmstudio/an000036';
+import config from '@mmstudio/config';
+import { sign } from 'jsonwebtoken';
+import anylogger from 'anylogger';
+
+const logger = anylogger('@mmstudio/an000029');
+
+const session = config.session as {
+	secret: string;
+	expiresIn: string | number;
+};
 
 export interface IUserInfo {
 	id: string;
 	userid: string;
-	info: { [key: string]: string };
-	sessionid: string;
+	info: { [key: string]: string; };
 }
-
-const db = 'sys';
 
 /**
  * 用户登录
- * @param usr 用户名
- * @param psw 密码
  */
-export default async function user_login(usr: string, psw: string, ip: string) {
-	const sql = `select t1.id as id, t2.identifier as userid, t1.info as info from users as t1 join user_auths as t2 on t1.id=t2.user_id where t2.identity_type='usercode' and t2.identifier='${usr}' and t2.credential='${md5(psw)}'`;
-	const [ran14] = await an14<IUserInfo>(db, [sql, []]);
-	if (ran14.length === 0) {
+export default async function user_login(type: 'user' | 'phone', usr: string, psw: string, ip: string) {
+	logger.debug('userlogin', usr);
+	const sql = 'select t1.id as id, t2.identifier as userid, t1.info as info from mm_users as t1 join mm_user_auths as t2 on t1.id=t2.user_id where t2.identity_type=$1 and t2.identifier=$2 and t2.credential=$3';
+	const [ran36] = await an36<IUserInfo>([sql, [type, usr, md5(psw)]]);
+	if (ran36.length === 0) {
 		throw new Error(`Could not find user:[${usr}]`);
 	}
-	await an14<IUserInfo>(db, [`update user_auths set ip='${ip}',last_active=${new Date().getTime()} where identity_type='usercode' and identifier='${usr}'`, []]);
-	const sessionid = v4();
-	const userinfo = ran14[0];
-	userinfo.sessionid = sessionid;
-	await an16(sessionid, userinfo);
-	return userinfo;
+	await an36<IUserInfo>(['update mm_user_auths set ip=$1,last_active=$2 where identity_type=$3 and identifier=$4', [ip, new Date().getTime(), type, usr]]);
+	const userinfo = ran36[0];
+	const token = sign(userinfo, session.secret, { expiresIn: session.expiresIn, algorithm: 'HS256' });
+	logger.debug('userlogin success', usr, 'token', token);
+	return { userinfo, token };
 }
 
 /**

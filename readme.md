@@ -1,9 +1,5 @@
 # 用户名密码登录
 
-## Redis
-
-考虑到可多实例部署情况，需要用到redis数据库用来存储用户session
-
 ## postgres
 
 用户数据存储到postgres数据库中，其json字段更便于存储可扩展的用户信息
@@ -32,19 +28,22 @@ credential|text|密码凭证（站内的保存密码，站外的不保存或保�
 ### 建表语句
 
 ```sql
-DROP TABLE IF EXISTS users;
-CREATE TABLE users (
+DROP TABLE IF EXISTS mm_users;
+CREATE TABLE mm_users (
 	id text NOT NULL,
 	info json,
 	PRIMARY KEY (id)
 ) WITH (oids = false);
 
-COMMENT ON TABLE users IS '用户基础信息表';
-COMMENT ON COLUMN users.id IS '用户id';
-COMMENT ON COLUMN users.info IS '用户信息';
+DROP INDEX IF EXISTS mm_users_id;
+CREATE UNIQUE INDEX mm_users_id ON mm_users(id);
 
-DROP TABLE IF EXISTS user_auths;
-CREATE TABLE user_auths (
+COMMENT ON TABLE mm_users IS '用户基础信息';
+COMMENT ON COLUMN mm_users.id IS '用户id';
+COMMENT ON COLUMN mm_users.info IS '用户信息';
+
+DROP TABLE IF EXISTS mm_user_auths;
+CREATE TABLE mm_user_auths (
 	id text NOT NULL,
 	user_id text,
 	identity_type text,
@@ -52,29 +51,36 @@ CREATE TABLE user_auths (
 	credential text,
 	last_active bigint,
 	ip text,
-	CONSTRAINT pk_user_auths PRIMARY KEY (identifier, identity_type)
+	CONSTRAINT pk_mm_user_auths PRIMARY KEY (identifier, identity_type)
 ) WITH (oids = false);
 
-COMMENT ON TABLE user_auths IS '用户授权信息表';
-COMMENT ON COLUMN user_auths.user_id IS 'users.id';
-COMMENT ON COLUMN user_auths.identity_type IS '登录类型（手机号 邮箱 用户名）或第三方应用名称（微信 微博等）';
-COMMENT ON COLUMN user_auths.identifier IS '标识（手机号 邮箱 用户名或第三方应用的唯一标识）';
-COMMENT ON COLUMN user_auths.credential IS '密码凭证（站内的保存密码，站外的不保存或保存token）';
+DROP INDEX IF EXISTS mm_user_auths_id;
+CREATE UNIQUE INDEX mm_user_auths_id ON mm_user_auths(id);
+DROP INDEX IF EXISTS mm_user_auths_user_id;
+CREATE INDEX mm_user_auths_user_id ON mm_user_auths(user_id);
+DROP INDEX IF EXISTS mm_user_auths_identity_type;
+CREATE INDEX mm_user_auths_identity_type ON mm_user_auths(identity_type);
+DROP INDEX IF EXISTS mm_user_auths_identifier;
+CREATE INDEX mm_user_auths_identifier ON mm_user_auths(identifier);
+
+COMMENT ON TABLE mm_user_auths IS '用户授权信息';
+COMMENT ON COLUMN mm_user_auths.user_id IS 'users.id';
+COMMENT ON COLUMN mm_user_auths.identity_type IS '登录类型（手机号 邮箱 用户名）或第三方应用名称（微信 微博等）';
+COMMENT ON COLUMN mm_user_auths.identifier IS '标识（手机号 邮箱 用户名或第三方应用的唯一标识）';
+COMMENT ON COLUMN mm_user_auths.credential IS '密码凭证（站内的保存密码，站外的不保存或保存token）';
 ```
 
 ## 完整的配置文件
 
 ```json
 {
-	"redis": {
-		"url": "redis://127.0.0.1:6379",
-		"expiration": 20000
+	"session": {
+		"secret": "Mmstudio123",
+		"expiresIn": "30d"
 	},
-	"dbs": {
-		"sys": {
-			"type": "postgres",
-			"source": "postgres://mmstudio:Mmstudio123@127.0.0.1:5432/mmstudio"
-		}
+	"db": {
+		"type": "postgres",
+		"source": "postgres://mmstudio:Mmstudio123@127.0.0.1:5432/mmstudio"
 	}
 }
 ```
@@ -87,14 +93,6 @@ COMMENT ON COLUMN user_auths.credential IS '密码凭证（站内的保存密码
 version: '3.7'
 
 services:
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - 6379:6379
-    # networks:
-    #   - app
-
   postgres:
     image: postgres
     container_name: postgres
